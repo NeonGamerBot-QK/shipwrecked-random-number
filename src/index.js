@@ -1,8 +1,15 @@
+require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
+const { WebClient } = require('@slack/web-api');
 const app = express();
-const blockedNumbers = []
-const redirectCalls = [process.env.MY_NUMBER];
+
+// Log level is one of the options you can set in the constructor
+const web = new WebClient(process.env.SLACK_XOXB, {
+});
+
+const blockedNumbers = [process.env.MY_NUMBER]
+const redirectCalls = JSON.parse(process.env.NUMBER_LIST || '[]');
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use('/static', express.static('static'));
@@ -20,31 +27,60 @@ app.use('/static', express.static('static'));
  * @property {string} To - The number or address the call is going to
  * @property {string} ToSipUri - SIP URI of the callee
  */
-
 // Entry point for Telnyx webhooks (voice calls)
 app.post('/voice', (req, res) => {
     console.log(req.body, req.headers)
-    const forwardNumber = redirectCalls[0];
+
     /** @type {Body} */
     const body = req.body
     if (blockedNumbers.includes(body.From)) {
         // reject the call
         const response = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-    <Reject reason="busy" />
+    <Reject />
 </Response>`;
         res.type('text/xml');
         return res.send(response);
     }
+    const siltedNumbers = [
+        ...redirectCalls,
+    ].filter(n => n["slack ID"] !== lastCalledNumber && n["Phone number"] !== body.From)
+    const forwardNumber = siltedNumbers[Math.floor(Math.random() * siltedNumbers.length)]?.["Phone number"]
+
+
+    web.chat.postMessage({
+        channel: process.env.SLACK_CHANNEL,
+        text: `📞 Incoming call from \`${body.From}\` to \`${body.To}\`. Redirecting to \`${forwardNumber}\`.`,
+    }).catch(err => {
+        console.error('Error sending message to Slack:', err);
+    })
+
     const response = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-    <Dial action="/hold-music" timeout="30">
+    <Say>Redirecting you to a random shipwrecker</Say>
+    <Dial timeout="15"  callerId="+12017789744">
         <Number>${forwardNumber}</Number>
     </Dial>
 </Response>`;
 
     res.type('text/xml');
     res.send(response);
+});
+
+
+app.post('/webhooks/telnyx', express.json(), (req, res) => {
+    console.log(req.body, 'webhook')
+    const event = req.body.data;
+
+    if (event.event_type === 'call.hangup') {
+        const callId = event.payload.call_control_id;
+        const reason = event.payload.hangup_cause;
+
+        console.log(`Call ${callId} hung up. Reason: ${reason}`);
+        // You can log this, update DB, stop timers, etc.
+    }
+
+    res.sendStatus(200);
 });
 
 // Endpoint for hold music (while call is ringing or during dial)
