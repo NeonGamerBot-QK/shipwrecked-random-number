@@ -8,8 +8,9 @@ const app = express();
 const web = new WebClient(process.env.SLACK_XOXB, {
 });
 
-const blockedNumbers = [process.env.MY_NUMBER]
+const blockedNumbers = JSON.parse(process.env.BLOCKED_NUMBERS || '[]')
 const redirectCalls = JSON.parse(process.env.NUMBER_LIST || '[]');
+const lastCallMap = new Map()
 let lastCalledNumber = null;
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use('/static', express.static('static'));
@@ -29,8 +30,28 @@ app.use('/static', express.static('static'));
  */
 // Entry point for Telnyx webhooks (voice calls)
 app.post('/voice', (req, res) => {
-    console.log(req.body, req.headers)
+    // console.log(req.body, req.headers)
+    const phoneNumber = req.body.From
+    const now = Date.now();
+    const oneHourAgo = now - 60 * 60 * 1000;
 
+    // Get or initialize the call history for this number
+    const callTimes = lastCallMap.get(phoneNumber) || [];
+
+    // Keep only the calls in the last hour
+    const recentCalls = callTimes.filter(timestamp => timestamp > oneHourAgo);
+
+    // Add the current call
+    recentCalls.push(now);
+
+    // Update the map
+    lastCallMap.set(phoneNumber, recentCalls);
+
+    // If more than 5 calls in the last hour, block the number
+    if (recentCalls.length > 5 && !blockedNumbers.includes(phoneNumber)) {
+        blockedNumbers.push(phoneNumber);
+        console.log(`Blocked number: ${phoneNumber}`);
+    }
     /** @type {Body} */
     const body = req.body
     if (blockedNumbers.includes(body.From)) {
