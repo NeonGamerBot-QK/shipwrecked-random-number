@@ -28,8 +28,34 @@ app.use('/static', express.static('static'));
  * @property {string} To - The number or address the call is going to
  * @property {string} ToSipUri - SIP URI of the callee
  */
+app.get('/', (req, res) => {
+    res.send(`<html>
+        <center>
+        <h1>
+        <a href="tel:+12017789744">+1 (201) 778 9744</a>
+        </h1>
+        </center>
+        </html>`)
+})
 // Entry point for Telnyx webhooks (voice calls)
-app.post('/voice', (req, res) => {
+app.post('/voice', function webhookValidator(req, res, next) {
+    try {
+        telnyx.webhooks.constructEvent(
+            JSON.stringify(req.body, null, 2),
+            Buffer.from(req.header('telnyx-signature-ed25519'), 'base64'),
+            req.header('telnyx-timestamp'),
+            Buffer.from(process.env.TELNYX_PUBLIC_KEY, 'base64'),
+            300,
+        );
+        next();
+    } catch (e) {
+        const message = (e).message;
+        console.log(`Invalid webhook message: ${message}`);
+        res.status(400).send(`Webhook error: ${message}`);
+    }
+}, (req, res) => {
+    // if(!)
+
     // console.log(req.body, req.headers)
     const phoneNumber = req.body.From
     const now = Date.now();

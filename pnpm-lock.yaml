@@ -20,6 +20,9 @@ importers:
       express:
         specifier: ^5.1.0
         version: 5.1.0
+      telnyx:
+        specifier: ^2.0.1
+        version: 2.0.1
       twilio:
         specifier: ^5.8.0
         version: 5.8.0
@@ -426,9 +429,16 @@ packages:
     resolution: {integrity: sha512-DvEy55V3DB7uknRo+4iOGT5fP1slR8wQohVdknigZPMpMstaKJQWhwiYBACJE3Ul2pTnATihhBYnRhZQHGBiRw==}
     engines: {node: '>= 0.8'}
 
+  telnyx@2.0.1:
+    resolution: {integrity: sha512-4h2IaPdWHkIDw2vbY71IDw1bP9MaKgvRqoBdzdFZLgZF+JbXrCO6B2IbTyrZwVrncc9TYqMoYyxrAINFH6VREQ==}
+    engines: {node: ^18 || >=20}
+
   toidentifier@1.0.1:
     resolution: {integrity: sha512-o5sSPKEkg/DIQNmH43V0/uerLrpzVedkUh8tGNvaeXpfpuwjKenlSox/2O/BTlZUtEe+JG7s5YhEz608PlAHRA==}
     engines: {node: '>=0.6'}
+
+  tweetnacl@1.0.3:
+    resolution: {integrity: sha512-6rt+RN7aOi1nGMyC4Xa5DdYiukl2UWCbcJft7YhxReBGQD7OAM8Pbxw6YMo4r2diNEA8FEmu32YOn9rhaiE5yw==}
 
   twilio@5.8.0:
     resolution: {integrity: sha512-aJLBvI7ODLmFHI7ZYLBiMZKIdHuF9PrPeRM/GBMDg/AAzGXs4V8gEnNPHyTVThK0/8J48YHSqXMlQ+WJR5nxoQ==}
@@ -444,6 +454,10 @@ packages:
   unpipe@1.0.0:
     resolution: {integrity: sha512-pjy2bYhSsufwWlKwPc+l3cN7+wuJlK6uz0YdJEOlQDbl6jo/YlPi4mb8agUkVC8BF7V8NuzeyPNqRksA3hztKQ==}
     engines: {node: '>= 0.8'}
+
+  uuid@9.0.1:
+    resolution: {integrity: sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==}
+    hasBin: true
 
   vary@1.1.2:
     resolution: {integrity: sha512-BNGbWLfd0eUPabhkXUVm0j8uuvREyTh5ovRa/dyow/BqAbZJyC+5fU+IzQOzmAKzYqYRAISoRhdQr3eIZ/PXqg==}
@@ -906,7 +920,15 @@ snapshots:
 
   statuses@2.0.2: {}
 
+  telnyx@2.0.1:
+    dependencies:
+      qs: 6.14.0
+      tweetnacl: 1.0.3
+      uuid: 9.0.1
+
   toidentifier@1.0.1: {}
+
+  tweetnacl@1.0.3: {}
 
   twilio@5.8.0:
     dependencies:
@@ -930,6 +952,8 @@ snapshots:
   undici-types@7.8.0: {}
 
   unpipe@1.0.0: {}
+
+  uuid@9.0.1: {}
 
   vary@1.1.2: {}
 
