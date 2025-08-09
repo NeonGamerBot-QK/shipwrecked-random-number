@@ -15,9 +15,9 @@ let lastCalledNumber = null;
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use("/static", express.static("static"));
 app.use((req, res, next) => {
-  console.log(`${req.method} - ${req.url}`)
-  next()
-})
+  console.log(`${req.method} - ${req.url}`);
+  next();
+});
 /**
  * @typedef {Object} Body
  * @property {string} AccountSid - Twilio Account SID
@@ -121,8 +121,7 @@ app.post(
 
     res.type("text/xml");
     res.send(response);
-  },
-);
+  });
 process.on("uncaughtException", (err) => {
   web.chat
     .postMessage({
