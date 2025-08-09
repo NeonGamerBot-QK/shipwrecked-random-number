@@ -62,8 +62,8 @@ app.post("/voice2", (req, res) => {
   // Update the map
   lastCallMap.set(phoneNumber, recentCalls);
 
-  // If more than 5 calls in the last hour, block the number
-  if (recentCalls.length > 5 && !blockedNumbers.includes(phoneNumber)) {
+  // If more than 30 calls in the last hour, block the number
+  if (recentCalls.length > 30 && !blockedNumbers.includes(phoneNumber)) {
     blockedNumbers.push(phoneNumber);
     console.log(`Blocked number: ${phoneNumber}`);
   }
