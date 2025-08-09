@@ -43,7 +43,7 @@ app.get("/", (req, res) => {
 });
 // Entry point for Telnyx webhooks (voice calls)
 app.post(
-  "/voice",
+  "/voice2",
   (req, res) => {
     // if(!)
 
