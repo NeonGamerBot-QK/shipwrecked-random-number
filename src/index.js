@@ -15,9 +15,9 @@ let lastCalledNumber = null;
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use("/static", express.static("static"));
 app.use((req, res, next) => {
-  console.log(`${req.method} - ${req.url}`)
-  next()
-})
+  console.log(`${req.method} - ${req.url}`);
+  next();
+});
 /**
  * @typedef {Object} Body
  * @property {string} AccountSid - Twilio Account SID
@@ -42,76 +42,74 @@ app.get("/", (req, res) => {
         </html>`);
 });
 // Entry point for Telnyx webhooks (voice calls)
-app.post(
-  "/voice",
-  (req, res) => {
-    // if(!)
+app.post("/voice", (req, res) => {
+  // if(!)
 
-    // console.log(req.body, req.headers)
-    const phoneNumber = req.body.From;
-    const now = Date.now();
-    const oneHourAgo = now - 60 * 60 * 1000;
+  // console.log(req.body, req.headers)
+  const phoneNumber = req.body.From;
+  const now = Date.now();
+  const oneHourAgo = now - 60 * 60 * 1000;
 
-    // Get or initialize the call history for this number
-    const callTimes = lastCallMap.get(phoneNumber) || [];
+  // Get or initialize the call history for this number
+  const callTimes = lastCallMap.get(phoneNumber) || [];
 
-    // Keep only the calls in the last hour
-    const recentCalls = callTimes.filter((timestamp) => timestamp > oneHourAgo);
+  // Keep only the calls in the last hour
+  const recentCalls = callTimes.filter((timestamp) => timestamp > oneHourAgo);
 
-    // Add the current call
-    recentCalls.push(now);
+  // Add the current call
+  recentCalls.push(now);
 
-    // Update the map
-    lastCallMap.set(phoneNumber, recentCalls);
+  // Update the map
+  lastCallMap.set(phoneNumber, recentCalls);
 
-    // If more than 5 calls in the last hour, block the number
-    if (recentCalls.length > 5 && !blockedNumbers.includes(phoneNumber)) {
-      blockedNumbers.push(phoneNumber);
-      console.log(`Blocked number: ${phoneNumber}`);
-    }
-    /** @type {Body} */
-    const body = req.body;
-    if (blockedNumbers.includes(body.From)) {
-      // reject the call
-      const response = `<?xml version="1.0" encoding="UTF-8"?>
+  // If more than 5 calls in the last hour, block the number
+  if (recentCalls.length > 5 && !blockedNumbers.includes(phoneNumber)) {
+    blockedNumbers.push(phoneNumber);
+    console.log(`Blocked number: ${phoneNumber}`);
+  }
+  /** @type {Body} */
+  const body = req.body;
+  if (blockedNumbers.includes(body.From)) {
+    // reject the call
+    const response = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
     <Reject />
 </Response>`;
-      res.type("text/xml");
-      return res.send(response);
-    }
-    const siltedNumbers = [...redirectCalls].filter(
-      (n) =>
-        n["slack ID"] !== lastCalledNumber && n["Phone number"] !== body.From,
-    );
-    const forwardD0 =
-      siltedNumbers[Math.floor(Math.random() * siltedNumbers.length)];
-    if (!forwardD0) {
-      // reject
-      // return ``
-      const response = `<?xml version="1.0" encoding="UTF-8"?>
+    res.type("text/xml");
+    return res.send(response);
+  }
+  const siltedNumbers = [...redirectCalls].filter(
+    (n) =>
+      n["slack ID"] !== lastCalledNumber && n["Phone number"] !== body.From,
+  );
+  const forwardD0 =
+    siltedNumbers[Math.floor(Math.random() * siltedNumbers.length)];
+  if (!forwardD0) {
+    // reject
+    // return ``
+    const response = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
     <Reject reason="busy" />
 </Response>`;
-      res.type("text/xml");
-      return res.send(response);
-    }
-    const forwardNumber = forwardD0?.["Phone number"];
+    res.type("text/xml");
+    return res.send(response);
+  }
+  const forwardNumber = forwardD0?.["Phone number"];
 
-    web.chat
-      .postMessage({
-        channel: process.env.SLACK_CHANNEL,
-        text: `📞 Incoming call from \`${body.From}\` to \`${body.To}\`. Redirecting to \`${forwardNumber}\`.`,
-      })
-      .catch((err) => {
-        console.error("Error sending message to Slack:", err);
-      });
-    web.chat.postMessage({
-      channel: `C098PLD3SCD`,
-      text: `📞 A call is being sent to <@${forwardD0["slack ID"]}>`,
+  web.chat
+    .postMessage({
+      channel: process.env.SLACK_CHANNEL,
+      text: `📞 Incoming call from \`${body.From}\` to \`${body.To}\`. Redirecting to \`${forwardNumber}\`.`,
+    })
+    .catch((err) => {
+      console.error("Error sending message to Slack:", err);
     });
-    lastCalledNumber = forwardD0["slack ID"];
-    const response = `<?xml version="1.0" encoding="UTF-8"?>
+  web.chat.postMessage({
+    channel: `C098PLD3SCD`,
+    text: `📞 A call is being sent to <@${forwardD0["slack ID"]}>`,
+  });
+  lastCalledNumber = forwardD0["slack ID"];
+  const response = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
     <Say>Redirecting you to a random shipwrecker</Say>
     <Dial timeout="15"  callerId="+12017789744">
@@ -119,10 +117,9 @@ app.post(
     </Dial>
 </Response>`;
 
-    res.type("text/xml");
-    res.send(response);
-  },
-);
+  res.type("text/xml");
+  res.send(response);
+});
 process.on("uncaughtException", (err) => {
   web.chat
     .postMessage({
