@@ -14,6 +14,10 @@ const lastCallMap = new Map();
 let lastCalledNumber = null;
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use("/static", express.static("static"));
+app.use((req, res, next) => {
+  console.log(`${req.method} - ${req.url}`)
+  next()
+})
 /**
  * @typedef {Object} Body
  * @property {string} AccountSid - Twilio Account SID
@@ -40,22 +44,6 @@ app.get("/", (req, res) => {
 // Entry point for Telnyx webhooks (voice calls)
 app.post(
   "/voice",
-  // function webhookValidator(req, res, next) {
-  //   try {
-  //     telnyx.webhooks.constructEvent(
-  //       JSON.stringify(req.body, null, 2),
-  //       Buffer.from(req.header("telnyx-signature-ed25519"), "base64"),
-  //       req.header("telnyx-timestamp"),
-  //       Buffer.from(process.env.TELNYX_PUBLIC_KEY, "base64"),
-  //       300,
-  //     );
-  //     next();
-  //   } catch (e) {
-  //     const message = e.message;
-  //     console.log(`Invalid webhook message: ${message}`);
-  //     res.status(400).send(`Webhook error: ${message}`);
-  //   }
-  // },
   (req, res) => {
     // if(!)
 
